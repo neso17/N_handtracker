@@ -16,9 +16,10 @@ prev_pos = {"x": 0, "y": 0}
 
 # MAIN LOOP
 while cap.isOpened():
+    time.sleep(0.67)
     success, frame = cap.read() #success bool, frame is image
     frame = cv2.flip(frame, 1) # horizontal flip
-    h, w, _ = frame.shape
+    h, w, _ = frame.shape #error!
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) #convert from BGR to RGB as cv + mp use diff defaults
     results = hands.process(rgb_frame) #OBJECT 
     
@@ -32,15 +33,27 @@ while cap.isOpened():
             x_coord = int(curr_pos["x"] * w)
             y_coord = int(curr_pos["y"] * h)
             dx = curr_pos["x"] - prev_pos["x"]
+            dy = curr_pos["y"] - prev_pos["y"]
 
             cv2.circle(frame, (x_coord, y_coord), 10, (255, 0, 0), -1)             
             cv2.putText(frame, f"Finger Tip indxF Y: {hand_landmarks.landmark[8].y:.2f}, X: {hand_landmarks.landmark[8].x:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
+            print(dx)
             if abs(dx) > 0.1:
                 if dx > 0:
                     gesture = "Swipe Right"
-                gesture = "Swipe Left"
-                cv2.putText(frame, gesture, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                elif dx < 0:
+                    gesture = "Swipe Left"
+            elif abs(dy) > 0.1:
+                if dy > 0:
+                    gesture = "Swipe Down" 
+                elif dy < 0:
+                    gesture = "Swipe Up"
+
+            else:
+                    gesture = "No Swipe"
+
+            cv2.putText(frame, gesture, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (225, 0, 255), 2)
             prev_pos = curr_pos
     
     cv2.imshow("Hand Tracker", frame)
